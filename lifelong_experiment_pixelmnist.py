@@ -1,15 +1,3 @@
-'''
-Notes
-    - Initialization should be in batch, to 
-    avoid forgetting on the early ones and
-    modules actually being trained for 
-    reusability
-    - Potentially add a schedule for the 
-    component updates or make the updates 
-    soft (like in soft DQN updates)
-    - 
-'''
-
 import struct
 import numpy as np
 import torch
@@ -62,11 +50,6 @@ def main(num_tasks=10,
         save_frequency=1,
         initial_seed=0,
         num_train=-1):
-    '''
-    TODOS:
-    Add module addition step
-    '''
-    # raise ValueError('Read TODO above for next steps')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     for seed in range(initial_seed, initial_seed + num_seeds):

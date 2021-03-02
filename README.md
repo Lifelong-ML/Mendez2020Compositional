@@ -1,6 +1,6 @@
 # Compositional Lifelong Learning
 
-This is the source code used for [Lifelong Learning of Compositional Structures (Mendez and Eaton, 2020)](https://arxiv.org/abs/2007.07732). 
+This is the source code used for [Lifelong Learning of Compositional Structures (Mendez and Eaton, 2021)](https://openreview.net/forum?id=ADWd4TJO13G). 
 
 This package contains the implementations of nine algorithms that conform to our framework for compositional learning: ER, EWC, and VAN with factorized linear models, soft layer ordering, and soft gating. Deep learning variants are implemented with and without dynamic addition of new modules. Implementations for all baselines in the paper are also included: jointly trained, no-components, and frozen components.
 
@@ -78,45 +78,53 @@ $ python make_lifelong_table.py -T 10 10 20 50 -d MNIST Fashion CIFAR Omniglot -
 Table 1: Accuracy of all algorithms using soft layer ordering.
 | Base   | Algorithm     | MNIST         | Fashion       | CUB           | CIFAR         | Omniglot      |
 |:-------|:--------------|:--------------|:--------------|:--------------|:--------------|:--------------|
-| ER     | Dyn. + Comp.  | **97.7±0.2**% | **96.3±0.4**% | 77.6±0.8%     | **75.9±0.5**% | **69.0±0.7**% |
-| ER     | Compositional | 96.5±0.2%     | 95.3±0.7%     | **79.2±0.7**% | 56.0±0.8%     | 67.8±1.0%     |
-| ER     | Joint         | 94.2±0.3%     | 94.7±0.7%     | 76.8±0.5%     | 63.8±0.6%     | 67.9±0.5%     |
-| ER     | No Comp.      | 91.2±0.3%     | 93.1±0.6%     | 43.1±1.0%     | 49.5±0.8%     | 40.0±3.9%     |
-| EWC    | Dyn. + Comp.  | **97.3±0.2**% | **96.1±0.4**% | **72.7±0.9**% | **71.7±0.9**% | **67.7±0.6**% |
-| EWC    | Compositional | 96.7±0.2%     | 95.3±0.6%     | 72.4±1.2%     | 43.4±1.1%     | 52.2±7.3%     |
-| EWC    | Joint         | 66.3±1.4%     | 69.1±1.4%     | 65.3±0.7%     | 41.3±0.8%     | 61.2±0.7%     |
-| EWC    | No Comp.      | 64.3±0.8%     | 58.5±2.9%     | 47.7±1.4%     | 34.1±0.9%     | 66.2±1.2%     |
-| VAN    | Dyn. + Comp.  | **97.4±0.3**% | **96.0±0.4**% | 72.5±0.8%     | **69.6±1.2**% | **67.1±0.6**% |
-| VAN    | Compositional | 96.4±0.2%     | 95.3±0.6%     | **73.7±1.1**% | 52.5±1.3%     | 65.3±1.2%     |
-| VAN    | Joint         | 67.4±1.4%     | 66.1±2.4%     | 64.4±0.8%     | 41.4±0.8%     | 60.2±1.1%     |
-| VAN    | No Comp.      | 64.4±1.1%     | 59.4±2.7%     | 48.3±1.9%     | 34.1±0.8%     | 64.7±1.0%     |
-| FM     | Dyn. + Comp.  | 99.1±0.0%     | 97.0±0.3%     | 78.2±0.4%     | 74.3±0.9%     | 67.7±0.7%     |
-| FM     | Compositional | 84.1±0.8%     | 85.9±1.3%     | 79.2±0.6%     | 46.0±1.6%     | 58.3±3.0%     |
+| ER     | Dyn. + Comp.  | **97.6±0.2**% | **96.6±0.4**% | 79.0±0.5%     | **77.6±0.3**% | **71.7±0.5**% |
+| ER     | Compositional | 96.5±0.2%     | 95.9±0.6%     | **80.6±0.3**% | 58.7±0.5%     | 71.2±1.0%     |
+| ER     | Joint         | 94.2±0.3%     | 95.1±0.7%     | 77.7±0.5%     | 65.8±0.4%     | 70.7±0.3%     |
+| ER     | No Comp.      | 91.2±0.3%     | 93.6±0.6%     | 44.0±0.9%     | 51.6±0.6%     | 43.2±4.2%     |
+| EWC    | Dyn. + Comp.  | **97.2±0.2**% | **96.5±0.4**% | **73.9±1.0**% | **77.6±0.3**% | **71.5±0.5**% |
+| EWC    | Compositional | 96.7±0.2%     | 95.9±0.6%     | 73.6±0.9%     | 48.0±1.7%     | 53.4±5.2%     |
+| EWC    | Joint         | 66.4±1.4%     | 69.6±1.6%     | 65.4±0.9%     | 42.9±0.4%     | 58.6±1.1%     |
+| EWC    | No Comp.      | 66.0±1.1%     | 68.8±1.1%     | 50.6±1.2%     | 36.0±0.7%     | 68.8±0.4%     |
+| VAN    | Dyn. + Comp.  | **97.3±0.2**% | **96.4±0.4**% | 73.0±0.7%     | **73.0±0.4**% | **69.4±0.4**% |
+| VAN    | Compositional | 96.5±0.2%     | 95.9±0.6%     | **74.5±0.7**% | 54.8±1.2%     | 68.9±0.9%     |
+| VAN    | Joint         | 67.4±1.4%     | 69.2±1.9%     | 65.1±0.7%     | 43.9±0.6%     | 63.1±0.9%     |
+| VAN    | No Comp.      | 64.4±1.1%     | 67.0±1.3%     | 49.1±1.6%     | 36.6±0.6%     | 68.9±1.0%     |
+| FM     | Dyn. + Comp.  | 99.1±0.0%     | 97.3±0.3%     | 78.3±0.4%     | 78.4±0.3%     | 71.0±0.4%     |
+| FM     | Compositional | 84.1±0.8%     | 86.3±1.3%     | 80.1±0.3%     | 48.8±1.6%     | 63.0±3.3%     |
+
 
 Table 2: Accuracy of all algorithms using soft gating. No Comp. results are the same as in Table 1.
 | Base   | Algorithm     | MNIST         | Fashion       | CIFAR         | Omniglot      |
 |:-------|:--------------|:--------------|:--------------|:--------------|:--------------|
-| ER     | Dyn. + Comp.  | **98.2±0.1**% | **96.7±0.4**% | **72.2±0.7**% | **71.5±0.7**% |
-| ER     | Compositional | 98.0±0.2%     | 96.3±0.4%     | 71.5±0.8%     | 70.8±0.6%     |
-| ER     | Joint         | 93.7±0.4%     | 93.3±1.5%     | 68.9±1.0%     | 70.3±0.3%     |
-| EWC    | Dyn. + Comp.  | **98.2±0.1**% | 96.5±0.4%     | 65.9±0.8%     | 67.3±1.3%     |
-| EWC    | Compositional | 98.0±0.3%     | **96.6±0.4**% | **73.4±0.7**% | **70.4±0.7**% |
-| EWC    | Joint         | 66.1±1.0%     | 65.3±1.7%     | 49.8±1.2%     | 62.4±0.5%     |
-| VAN    | Dyn. + Comp.  | **98.2±0.1**% | **96.8±0.4**% | 64.4±0.8%     | 65.5±1.3%     |
-| VAN    | Compositional | 98.0±0.2%     | 96.5±0.4%     | **65.9±0.8**% | **69.4±0.7**% |
-| VAN    | Joint         | 67.3±1.7%     | 62.6±3.4%     | 49.2±0.8%     | 62.3±1.6%     |
-| FM     | Dyn. + Comp.  | 98.5±0.1%     | 96.7±0.4%     | 72.9±0.7%     | 71.7±0.6%     |
-| FM     | Compositional | 94.8±0.4%     | 95.8±0.4%     | 75.2±0.7%     | 72.0±0.5%     |
+| ER     | Dyn. + Comp.  | **98.2±0.1**% | **97.1±0.4**% | 74.9±0.3%     | 73.7±0.3%     |
+| ER     | Compositional | 98.0±0.2%     | 97.0±0.4%     | **75.9±0.4**% | **73.9±0.3**% |
+| ER     | Joint         | 93.8±0.3%     | 94.6±0.7%     | 72.0±0.4%     | 72.6±0.2%     |
+| ER     | No Comp.      | 91.2±0.3%     | 93.6±0.6%     | 51.6±0.6%     | 43.2±4.2%     |
+| EWC    | Dyn. + Comp.  | **98.2±0.1**% | **97.0±0.4**% | 76.6±0.5%     | 73.6±0.4%     |
+| EWC    | Compositional | 98.0±0.2%     | **97.0±0.4**% | **76.9±0.3**% | **74.6±0.2**% |
+| EWC    | Joint         | 68.6±0.9%     | 69.5±1.8%     | 49.9±1.1%     | 63.5±1.2%     |
+| EWC    | No Comp.      | 66.0±1.1%     | 68.8±1.1%     | 36.0±0.7%     | 68.8±0.4%     |
+| VAN    | Dyn. + Comp.  | **98.2±0.1**% | **97.1±0.4**% | 66.6±0.7%     | 69.1±0.9%     |
+| VAN    | Compositional | 98.0±0.2%     | 96.9±0.5%     | **68.2±0.5**% | **72.1±0.3**% |
+| VAN    | Joint         | 67.3±1.7%     | 66.4±1.9%     | 51.0±0.8%     | 65.8±1.3%     |
+| VAN    | No Comp.      | 64.4±1.1%     | 67.0±1.3%     | 36.6±0.6%     | 68.9±1.0%     |
+| FM     | Dyn. + Comp.  | 98.4±0.1%     | 97.0±0.4%     | 77.2±0.3%     | 74.0±0.4%     |
+| FM     | Compositional | 94.8±0.4%     | 96.3±0.4%     | 77.2±0.3%     | 74.1±0.3%     |
+
+
 
 ## Citing this work
 
 If you use this work, please cite our paper
 
 ```
-@article{mendez2020lifelong,
-  title={Lifelong Learning of Compositional Structures},
-  author={Mendez, Jorge A. and Eaton, Eric},
-  journal={arXiv preprint arXiv:2007.07732},
-  year={2020}
+@inproceedings{
+    mendez2021lifelong,
+    title={Lifelong Learning of Compositional Structures},
+    author={Jorge A Mendez and Eric Eaton},
+    booktitle={International Conference on Learning Representations},
+    year={2021},
+    url={https://openreview.net/forum?id=ADWd4TJO13G}
 }
 ```

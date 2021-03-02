@@ -366,3 +366,37 @@ class MNISTPixels():
         X_train = X_train[idx_digit]
         
         return X_train
+
+
+class CombinedDatasets:
+    def __init__(self, datasets):
+        # This maintains the order in which datasets are passed
+        self.trainset = []
+        self.valset = []
+        self.testset = []
+        self.features = []
+        self.num_tasks = 0
+        self.num_classes = []
+        for d in datasets:
+            for trainset_t, valset_t, testset_t in zip(d.trainset, d.valset, d.testset):
+                trainset_t.tensors[1].data = trainset_t.tensors[1].data.long().squeeze()
+                valset_t.tensors[1].data = valset_t.tensors[1].data.long().squeeze()
+                testset_t.tensors[1].data = testset_t.tensors[1].data.long().squeeze()
+            self.trainset += d.trainset
+            self.valset += d.valset
+            self.testset += d.valset
+            self.features += d.features
+            self.num_tasks += d.num_tasks
+            if isinstance(d.num_classes, int):
+                d.num_classes = [d.num_classes] * d.num_tasks
+            self.num_classes += d.num_classes
+        self.max_batch_size = min(d.max_batch_size for d in datasets)
+
+        self.dataset_ids = [i for i, d in enumerate(datasets) for task in d.trainset]
+
+        combined_list = list(zip(self.trainset, self.valset, self.testset, self.features, self.num_classes, self.dataset_ids))
+        random.shuffle(combined_list)
+        self.trainset, self.valset, self.testset, self.features, self.num_classes, self.dataset_ids = zip(*combined_list)
+
+
+

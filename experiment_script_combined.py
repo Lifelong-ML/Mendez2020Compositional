@@ -8,13 +8,11 @@ import numpy as np
 algorithms = ['er_compositional', 'ewc_compositional', 'van_compositional']
 algorithms += ['er_joint', 'ewc_joint', 'van_joint']
 algorithms += ['er_nocomponents', 'ewc_nocomponents', 'van_nocomponents']
-algorithms += ['er_dynamic', 'ewc_dynamic', 'van_dynamic']
-algorithms += ['fm_compositional', 'fm_dynamic']
-datasets = ['CIFAR', 'Omniglot']
-datasets += ['MNIST', 'Fashion', 'CUB']
+
 num_epochs = 100
 mini_batch = 32
 update_frequency = 100
+save_frequency = 1
 init_mode = 'random_onehot'
 results_root = 'results'
 
@@ -28,42 +26,14 @@ did_not_start = 0
 did_not_finish = 0
 finished = 0
 for i in range(10):
-    for d in datasets:
-        if d ==  'MNIST':
-            num_tasks = 10
-            size = 64
-            num_layers = 4
-            init_tasks = 4
-            architecture = 'mlp'
-            gpu_use = 20
-        elif d ==  'Fashion':
-            num_tasks = 10
-            size = 64
-            num_layers = 4
-            init_tasks = 4
-            architecture = 'mlp'
-            gpu_use = 20
-        elif d ==  'CIFAR':
-            num_tasks = 20
-            size = 50
-            num_layers = 4
-            init_tasks = 4
-            architecture = 'cnn'
-            gpu_use = 25
-        elif d ==  'CUB':
-            num_tasks = 20
-            size = 256
-            num_layers = 4
-            init_tasks = 4
-            architecture = 'mlp'
-            gpu_use = 20
-        elif d ==  'Omniglot':
-            num_tasks = 50
-            size = 53
-            num_layers = 4
-            init_tasks = 4
-            architecture = 'cnn'
-            gpu_use = 25
+        num_tasks = 10  # 10 MNIST 10 Fashion 20 CUB
+        size = 256
+        num_layers = 4
+        init_tasks = 4
+        architecture = 'mlp'
+        gpu_use = 20
+        num_train = -1
+
             
         for a in algorithms:
             ewc_lambda = 1e-3
@@ -89,7 +59,7 @@ for i in range(10):
             else:
                 completed_tasks = len([name for name in os.listdir(results_path) if os.path.isdir(os.path.join(results_path, name))])
                 if completed_tasks != num_tasks:
-                    print('Did not finish', end='')
+                    print('Did not finish')
                     did_not_finish += 1
                 else:
                     print('Finished')
@@ -97,9 +67,8 @@ for i in range(10):
                     continue
             my_env = os.environ.copy()
             my_env['CUDA_VISIBLE_DEVICES'] = str(cuda_device)
-            args = ['python', 'lifelong_experiment.py',
+            args = ['python', 'lifelong_experiment_combined.py',
                 '-T', str(num_tasks), 
-                '-d', d,
                 '-e', str(num_epochs),
                 '-b', str(mini_batch),
                 '-f', str(update_frequency),
@@ -112,7 +81,9 @@ for i in range(10):
                 '-alg', a,
                 '-n', str(1),
                 '-r', results_root,
-                '--initial_seed', str(i)]
+                '-sf', str(save_frequency),
+                '--initial_seed', str(i),
+                '--num_train', str(num_train)]
             p = subprocess.Popen(args, env=my_env)
             process_gpu_use[p] = gpu_use
             gpu_use_total[cuda_device] += gpu_use

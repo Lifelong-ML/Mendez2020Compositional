@@ -79,6 +79,7 @@ def main(num_tasks_all,
                             line = f.readline()
                             curr_components = int(line.lstrip('final components: '))
                             keep_component = curr_components > prev_components
+                            prev_components = curr_components
                     with open(os.path.join(results_dir, 'log.txt')) as f:
                         ##### JUMPSTART #########
                         next(f)
@@ -116,13 +117,14 @@ def main(num_tasks_all,
 
                             i_0 = line.find(key + ': ', i_0) + len(key + ': ')
                             i_f = line.find('\t', i_0)
+                            substr = line[i_0 : i_f] if i_f != -1 else line[i_0:]
                             try:
-                                val = float(line[i_0 : i_f])
+                                val = float(substr)
                             except:
                                 if keep_component:
-                                    val = float(line[i_0 : i_f].split(',')[0].lstrip('('))
+                                    val = float(substr.split(',')[0].lstrip('('))
                                 else:
-                                    val = float(line[i_0 : i_f].split(',')[1].rstrip(')'))                                            
+                                    val = float(substr.split(',')[1].rstrip(')'))                                            
 
                             jumpstart_vals[algorithm][key][seed, task_id] = val
                             i_0 = i_f if i_f == - 1 else i_f + 1
@@ -160,13 +162,14 @@ def main(num_tasks_all,
                                 key = line[i_0 : i_f]
                                 i_0 = line.find(key + ': ', i_0) + len(key + ': ')
                                 i_f = line.find('\t', i_0)
+                                substr = line[i_0 : i_f] if i_f != -1 else line[i_0:]
                                 try:
-                                    val = float(line[i_0 : i_f])
+                                    val = float(substr)
                                 except:
                                     if keep_component:
-                                        val = float(line[i_0 : i_f].split(',')[0].lstrip('('))
+                                        val = float(substr.split(',')[0].lstrip('('))
                                     else:
-                                        val = float(line[i_0 : i_f].split(',')[1].rstrip(')'))                                            
+                                        val = float(substr.split(',')[1].rstrip(')'))                                            
 
 
 
@@ -191,13 +194,14 @@ def main(num_tasks_all,
                                     key = line[i_0 : i_f]
                                     i_0 = line.find(key + ': ', i_0) + len(key + ': ')
                                     i_f = line.find('\t', i_0)
+                                    substr = line[i_0 : i_f] if i_f != -1 else line[i_0:]
                                     try:
-                                        val = float(line[i_0 : i_f])
+                                        val = float(substr)
                                     except:
                                         if keep_component:
-                                            val = float(line[i_0 : i_f].split(',')[0].lstrip('('))
+                                            val = float(substr.split(',')[0].lstrip('('))
                                         else:
-                                            val = float(line[i_0 : i_f].split(',')[1].rstrip(')'))                                            
+                                            val = float(substr.split(',')[1].rstrip(')'))                                            
 
 
                                     if task == task_id:

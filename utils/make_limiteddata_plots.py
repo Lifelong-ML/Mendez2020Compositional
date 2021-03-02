@@ -62,6 +62,17 @@ def main(num_tasks,
                 task_id = num_tasks - 1
                 for idx_train, num_train in enumerate(num_train_list):
                     results_dir = os.path.join(results_root, dataset, algorithm, 'seed_{}'.format(seed), 'numtrain_{}'.format(num_train), 'task_{}'.format(task_id))
+                    if 'dynamic' in algorithm and task_id >= num_init_tasks:
+                        prev_results_dir = os.path.join(results_root, dataset, algorithm, 'seed_{}'.format(seed), 'numtrain_{}'.format(num_train), 'task_{}'.format(task_id - 1))
+                        with open(os.path.join(prev_results_dir, 'num_components.txt')) as f:
+                            line = f.readline()
+                            prev_components = int(line.lstrip('final components: '))
+
+                        with open(os.path.join(results_dir, 'num_components.txt')) as f:
+                            line = f.readline()
+                            curr_components = int(line.lstrip('final components: '))
+                            keep_component = curr_components > prev_components
+                            prev_components = curr_components
                     with open(os.path.join(results_dir, 'log.txt')) as f:
                         epoch = 0
                         while True:
@@ -94,10 +105,14 @@ def main(num_tasks,
                                     final_errs_all[key] = []
                                 i_0 = line.find(key + ': ', i_0) + len(key + ': ')
                                 i_f = line.find('\t', i_0)
+                                substr = line[i_0 : i_f] if i_f != 0 else line[i_0:]
                                 try:
-                                    val = float(line[i_0 : i_f])
+                                    val = float(substr)
                                 except:
-                                    val = float(line[i_0 : i_f].split(',')[0].lstrip('('))
+                                    if keep_component:
+                                        val = float(substr.split(',')[0].lstrip('('))
+                                    else:
+                                        val = float(substr.split(',')[1].rstrip(')'))                                            
 
                                 final_vals[algorithm][key][seed, task, idx_train] = val
                                 i_0 = i_f if i_f == - 1 else i_f + 1

@@ -3,20 +3,13 @@ import numpy as np
 import torch
 import argparse
 import os
+import pickle
 
-from datasets import datasets
+import datasets
 
 from models.mlp import MLP
 from models.mlp_soft_lifelong import MLPSoftLL
 from models.mlp_soft_lifelong_dynamic import MLPSoftLLDynamic
-from models.mlp_soft_gated_lifelong import MLPSoftGatedLL
-from models.cnn import CNN
-from models.cnn_soft_lifelong import CNNSoftLL
-from models.cnn_soft_lifelong_dynamic import CNNSoftLLDynamic
-from models.cnn_soft_gated_lifelong import CNNSoftGatedLL
-from models.cnn_soft_gated_lifelong_dynamic import CNNSoftGatedLLDynamic
-from models.linear import Linear
-from models.linear_factored import LinearFactored
 
 # Explicitly compositional with dynamic module number (Ours)
 from learners.er_dynamic import CompositionalDynamicER
@@ -40,10 +33,10 @@ from learners.ewc_nocomponents import NoComponentsEWC
 from learners.er_nocomponents import NoComponentsER
 from learners.van_nocomponents import NoComponentsVAN
 
+
 SEED_SCALE = 10
 
 def main(num_tasks=10,
-        dataset='MNIST',
         num_epochs=100,
         batch_size=64,
         component_update_frequency=100,
@@ -54,40 +47,25 @@ def main(num_tasks=10,
         num_init_tasks=4,
         init_mode='random_onehot',
         architecture='mlp',
-        algorithm='er_compositional',
+        algorithm='ella_composable',
         num_seeds=1,
         results_root='./tmp/results',
         save_frequency=1,
-        initial_seed=0):
+        initial_seed=0,
+        num_train=-1):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     for seed in range(initial_seed, initial_seed + num_seeds):
         torch.manual_seed(seed * SEED_SCALE)
         np.random.seed(seed * SEED_SCALE)
-        
-        if dataset == 'MNIST':
-            torch_dataset = datasets.BinaryMNIST(num_tasks)
-            freeze_encoder = True
-        elif dataset == 'Fashion':
-            torch_dataset = datasets.BinaryFashionMNIST(num_tasks)
-            freeze_encoder = True
-        elif dataset == 'CIFAR':
-            padding = 1
-            torch_dataset = datasets.SplitCIFAR100(num_tasks)
-        elif dataset == 'CUB':
-            torch_dataset = datasets.SplitCUB200(num_tasks)
-            freeze_encoder = False
-        elif dataset == 'Omniglot':
-            padding = 0
-            torch_dataset = datasets.Omniglot(num_tasks)
-        elif dataset == 'Landmine':
-            torch_dataset = datasets.Landmine(num_tasks)
-        elif dataset == 'FacialRecognition':
-            torch_dataset = datasets.FacialRecognition(num_tasks)
-        elif dataset == 'LondonSchool':
-            torch_dataset = datasets.LondonSchool(num_tasks)
-        else:
-            raise NotImplementedError('{} dataset is not supported'.format(dataset))
+        random.seed(seed * SEED_SCALE)
+                
+        d_MNIST = datasets.BinaryMNIST(num_tasks, num_train=num_train)
+        d_Fashion = datasets.BinaryFashionMNIST(num_tasks, num_train=num_train)
+        d_CUB = datasets.SplitCUB200(num_tasks * 2, num_train=num_train)
+        torch_dataset = datasets.InterleavedDatasets([d_MNIST, d_Fashion, d_CUB])
+        freeze_encoder = False
+        num_tasks = torch_dataset.num_tasks
         
         if architecture == 'mlp':
             if 'dynamic' in algorithm:
@@ -120,103 +98,12 @@ def main(num_tasks=10,
                                 init_ordering_mode=init_mode,
                                 device=device,
                                 freeze_encoder=freeze_encoder)
-        elif architecture == 'mlp_gated':
-            net = MLPSoftGatedLL(torch_dataset.features,
-                                size=layer_size,
-                                depth=num_layers,
-                                num_classes=torch_dataset.num_classes, 
-                                num_tasks=num_tasks,
-                                num_init_tasks=num_init_tasks,
-                                init_ordering_mode=init_mode,
-                                device=device,
-                                freeze_encoder=freeze_encoder)
-        elif architecture == 'linear':
-            if 'nocomponents' in algorithm:
-                net = Linear(torch_dataset.features,
-                                num_tasks=num_tasks,
-                                num_init_tasks=num_init_tasks,
-                                regression=dataset == 'LondonSchool',
-                                device=device)
-            else:
-                net = LinearFactored(torch_dataset.features,
-                                depth=num_layers, 
-                                num_tasks=num_tasks,
-                                num_init_tasks=num_init_tasks,
-                                init_ordering_mode=init_mode,
-                                regression=dataset == 'LondonSchool',
-                                device=device)
-            # Ignore the batch_size in the arguments (batch learning)
-            batch_size = torch_dataset.max_batch_size
-            
-        elif architecture == 'cnn':
-            if 'dynamic' in algorithm:
-                net = CNNSoftLLDynamic(torch_dataset.features,
-                    channels=layer_size,
-                    depth=num_layers,
-                    num_classes=torch_dataset.num_classes,
-                    num_tasks=num_tasks,
-                    conv_kernel=3,
-                    maxpool_kernel=2,
-                    padding=padding,
-                    num_init_tasks=num_init_tasks,
-                    max_components=-1, 
-                    init_ordering_mode=init_mode,
-                    device=device)
-            elif 'nocomponents' in algorithm:
-                net = CNN(torch_dataset.features,
-                    channels=layer_size,
-                    depth=num_layers,
-                    num_classes=torch_dataset.num_classes,
-                    num_tasks=num_tasks,
-                    conv_kernel=3,
-                    maxpool_kernel=2,
-                    padding=padding,
-                    num_init_tasks=num_init_tasks,
-                    device=device)
-            else:
-                net = CNNSoftLL(torch_dataset.features,
-                    channels=layer_size,
-                    depth=num_layers,
-                    num_classes=torch_dataset.num_classes,
-                    num_tasks=num_tasks,
-                    conv_kernel=3,
-                    maxpool_kernel=2,
-                    padding=padding,
-                    num_init_tasks=num_init_tasks,
-                    init_ordering_mode=init_mode,
-                    device=device)
-        elif architecture == 'cnn_gated':
-            if 'dynamic' in algorithm:
-                net = CNNSoftGatedLLDynamic(torch_dataset.features,
-                    channels=layer_size,
-                    depth=num_layers,
-                    num_classes=torch_dataset.num_classes,
-                    num_tasks=num_tasks,
-                    conv_kernel=3,
-                    maxpool_kernel=2,
-                    padding=padding,
-                    num_init_tasks=num_init_tasks,
-                    max_components=-1,
-                    init_ordering_mode=init_mode,
-                    device=device)
-            else:
-                net = CNNSoftGatedLL(torch_dataset.features,
-                    channels=layer_size,
-                    depth=num_layers,
-                    num_classes=torch_dataset.num_classes,
-                    num_tasks=num_tasks,
-                    conv_kernel=3,
-                    maxpool_kernel=2,
-                    padding=padding,
-                    num_init_tasks=num_init_tasks,
-                    init_ordering_mode=init_mode,
-                    device=device)
         else:
             raise NotImplementedError('{} architecture is not supported'.format(architecture))
 
         net.train()     # training mode
         kwargs = {}
-        results_dir = os.path.join(results_root, dataset, algorithm, 'seed_{}'.format(seed))
+        results_dir = os.path.join(results_root, 'Combined', algorithm, 'seed_{}'.format(seed))
         if algorithm == 'er_compositional':
             if replay_size == -1:
                 replay_size = batch_size
@@ -287,14 +174,15 @@ def main(num_tasks=10,
                 testloaders=testloaders,
                 save_freq=save_frequency,
                 **kwargs)
+        
+        with open(os.path.join(results_dir, 'dataset_ids.pickle'), 'wb') as f:
+            pickle.dump(torch_dataset.dataset_ids, f)
+        
 
 if __name__ == '__main__':
     torch.set_num_threads(1)
-    parser = argparse.ArgumentParser(description='Experimental evaluation of linear models for lifelong compositional learning')
+    parser = argparse.ArgumentParser(description='Experimental evaluation of lifelong compositional learning on combined data set')
     parser.add_argument('-T', '--num_tasks', dest='num_tasks', default=10, type=int)
-    parser.add_argument('-d', '--dataset', dest='dataset', default='MNIST', 
-        choices=['MNIST', 'Fashion', 'CIFAR', 'CUB', 'Omniglot',
-        'Landmine', 'FacialRecognition', 'LondonSchool'])
     parser.add_argument('-e', '--num_epochs', dest='num_epochs', default=100, type=int)
     parser.add_argument('-b', '--batch_size', dest='batch_size', default=64, type=int)
     parser.add_argument('-f', '--update_frequency', dest='component_update_frequency', default=100, type=int)
@@ -303,7 +191,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--layer_size', dest='layer_size', default=64, type=int)
     parser.add_argument('-l', '--num_layers', dest='num_layers', default=4, type=int)
     parser.add_argument('-k', '--init_tasks', dest='num_init_tasks', default=4, type=int)
-    parser.add_argument('-i', '--init_mode', dest='init_mode', default='random_onehot', choices=['random_onehot', 'one_module_per_task', 'random'])
+    parser.add_argument('-i', '--init_mode', dest='init_mode', default='random_onehot', choices=['random_onehot', 'one_module_per_task', 'random', 'uniform'])
     parser.add_argument('-arc', '--architecture', dest='arch', default='mlp', 
         choices=['mlp', 'cnn', 'mlp_gated', 'cnn_gated', 'linear'])
     parser.add_argument('-alg', '--algorithm', dest='algo', default='er_compositional', 
@@ -311,11 +199,12 @@ if __name__ == '__main__':
                 'er_joint', 'ewc_joint', 'van_joint',
                 'er_nocomponents', 'ewc_nocomponents', 'van_nocomponents',
                 'er_dynamic', 'ewc_dynamic', 'van_dynamic',
-                'fm_compositional'])
+                'fm_compositional', 'fm_dynamic'])
     parser.add_argument('-n', '--num_seeds', dest='num_seeds', default=1, type=int)
     parser.add_argument('-r', '--results_root', dest='results_root', default='./tmp/results')
     parser.add_argument('-sf', '--save_frequency', dest='save_frequency', default=1, type=int)
     parser.add_argument('--initial_seed', dest='initial_seed', default=0, type=int)
+    parser.add_argument('--num_train', dest='num_train', default=-1, type=int)
     args = parser.parse_args()
 
     print('Will train on {} tasks from the {} dataset for {} epochs.'.format(args.num_tasks, args.dataset, args.num_epochs))
@@ -326,7 +215,6 @@ if __name__ == '__main__':
     print('Results will be stored in {}'.format(os.path.join(args.results_root, args.dataset, args.algo)))
 
     main(num_tasks=args.num_tasks,
-        dataset=args.dataset,
         num_epochs=args.num_epochs,
         batch_size=args.batch_size,
         component_update_frequency=args.component_update_frequency,
@@ -341,4 +229,5 @@ if __name__ == '__main__':
         num_seeds=args.num_seeds,
         results_root=args.results_root,
         save_frequency=args.save_frequency,
-        initial_seed=args.initial_seed)
+        initial_seed=args.initial_seed,
+        num_train=args.num_train)

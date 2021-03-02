@@ -46,6 +46,7 @@ def main(num_tasks_all,
                             line = f.readline()
                             curr_components = int(line.lstrip('final components: '))
                             keep_component = curr_components > prev_components
+                            prev_components = curr_components
                     with open(os.path.join(results_dir, 'log.txt')) as f:
                         for epoch in range(0, num_epochs + (1 if task_id == num_tasks - 1 else 0), save_frequency):
                             try:
@@ -66,14 +67,14 @@ def main(num_tasks_all,
                                         learning_curves[key] = np.full((num_seeds, plot_tasks, num_iter // save_frequency), np.nan)
                                     i_0 = line.find(key + ': ', i_0) + len(key + ': ')
                                     i_f = line.find('\t', i_0)
-                                    # val = float(line[i_0 : i_f])
+                                    substr = line[i_0 : i_f] if i_f != 0 else line[i_0:]
                                     try:
-                                        val = float(line[i_0 : i_f])
+                                        val = float(substr)
                                     except:
                                         if keep_component:
-                                            val = float(line[i_0 : i_f].split(',')[0].lstrip('('))
+                                            val = float(substr.split(',')[0].lstrip('('))
                                         else:
-                                            val = float(line[i_0 : i_f].split(',')[1].rstrip(')'))                                            
+                                            val = float(substr.split(',')[1].rstrip(')'))                                            
                                     learning_curves[key][seed, task // task_step, iter_cnt] = val
                                     i_0 = i_f if i_f == - 1 else i_f + 1
                             iter_cnt += 1
