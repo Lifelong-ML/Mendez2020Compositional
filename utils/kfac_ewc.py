@@ -55,7 +55,7 @@ class KFAC_EWC(Optimizer):
                 self.params.append(d)
         super().__init__(self.params, {})
 
-    def add_param_group(self, mod):
+    def add_module(self, mod):
         mod_class = mod.__class__.__name__
         if mod_class in ['Linear', 'Conv2d']:
             handle = mod.register_forward_pre_hook(self._save_input)
