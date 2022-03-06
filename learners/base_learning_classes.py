@@ -182,7 +182,7 @@ class CompositionalDynamicLearner(CompositionalLearner):
             self.net.add_tmp_module(task_id)   # freeze original modules and structure
             self.optimizer.add_param_group({'params': self.net.components[-1].parameters()})
             if hasattr(self, 'preconditioner'):
-                self.preconditioner.add_param_group(self.net.components[-1])
+                self.preconditioner.add_module(self.net.components[-1])
 
             self.net.freeze_structure(freeze=False, task_id=task_id)    # unfreeze (new) structure for current task
             iter_cnt = 0
